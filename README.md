@@ -1,6 +1,6 @@
 # Mitigating the Artificial Hivemind: A Study of Intervention Strength for Diverse LLM Generation
 
-> **Research paper codebase** — A systematic ladder of interventions to break LLM mode collapse on open-ended creative prompts. We discover a sharp *intervention cliff*: sampling level and adapter level perturbations fail entirely, while prompt-level cultural steering succeeds immediately.
+> **Research paper codebase** A systematic ladder of interventions to break LLM mode collapse on open-ended creative prompts. We discover a sharp *intervention cliff*: sampling level and adapter level perturbations fail entirely, while prompt-level cultural steering succeeds immediately.
 
 ## The Problem
 
@@ -18,19 +18,7 @@ This is the **Artificial Hivemind** effect ([Jiang et al., NeurIPS 2025 Best Pap
 
 We test 6 interventions ordered by strength. The central finding is a **sharp cliff** between levels that fail and levels that work:
 
-| Level | Intervention | SemDiv ↑ | Vendi ↑ | Significance |
-|-------|-------------|----------|---------|-------------|
-| L0 | Naive (same prompt K times) | 0.109 | 1.91 | baseline |
-| L1 | Temperature sweep (0.5 → 1.3) | 0.108 | 1.90 | ns |
-| ─── | **THE CLIFF** | ─── | ─── | ─── |
-| L3 | Cultural prompt framing | 0.314 | 3.87 | p < 0.001 |
-| L4 | Few-shot cultural exemplars | 0.346 | 4.72 | p < 0.001 |
-| L5 | Few-shot + prompt-level repulsion | 0.442 | 6.96 | p < 0.001 |
-| L6 | Full pipeline + DPP selection | 0.520 | 9.61 | p < 0.001 |
-
-*Results: Mistral-7B-Instruct-v0.2, 15 prompts, K=30.*
-
-**L0–L1 are noise.** Temperature doesn't help — it changes how randomly the model speaks, not what it says.
+**L0–L1 are noise.** Temperature doesn't help, it changes how randomly the model speaks, not what it says.
 
 **L3+ works immediately.** The moment you add cultural framing to the prompt, diversity triples. Stacking few-shot exemplars (L4), cross-response repulsion (L5), and DPP subset selection (L6) pushes diversity to 4.8× the baseline.
 
@@ -46,7 +34,7 @@ We test 6 interventions ordered by strength. The central finding is a **sharp cl
 
 ### Prerequisites
 - Python 3.9+
-- A [Fireworks AI](https://fireworks.ai) API key (free tier gives $1 credit — enough for multiple full runs)
+- A [Fireworks AI](https://fireworks.ai) API key (free tier gives $6 credit enough for multiple full runs)
 
 ### Installation
 
@@ -84,7 +72,7 @@ Runs 2 prompts with K=5 responses per level. Takes ~5 minutes, costs < $0.01. Ve
 python -m src.run_experiment
 ```
 
-Runs all 15 prompts with K=30 responses across 6 levels. Takes ~2–4 hours (depending on rate limits), costs ~$0.55.
+Runs all 15 prompts with K=30 responses across 6 levels. Takes ~2–4 hours (depending on rate limits), costs ~$2.40.
 
 ### Run Specific Levels Only
 
@@ -95,7 +83,7 @@ python -m src.run_experiment --levels L0 L4 L6
 ### Use a Different Model
 
 ```bash
-# Llama 3.3 70B (~$2.50 for full run)
+# Llama 3.3 70B (~$2.40 for full run)
 python -m src.run_experiment --model accounts/fireworks/models/llama-v3p3-70b-instruct
 
 ```
@@ -152,7 +140,7 @@ hivemind-ladder/
 
 **L6 — Full Pipeline + DPP**: Over-generate 2K candidates using L5, then select the K most diverse-and-high-quality subset using a Determinantal Point Process. The DPP maximizes the volume of the quality-weighted embedding parallelepiped a mathematical guarantee on diversity.
 
-> **Note on L2 and token-level repulsion**: L2 (cultural LoRA adapters) and token-level n-gram repulsion require local GPU access and are implemented in our [Colab notebooks](). The API-based codebase uses prompt-level repulsion as the equivalent for L5.
+> **Note on L2 and token-level repulsion**: L2 (cultural LoRA adapters) and token-level n-gram repulsion require local GPU access and are implemented in our [Colab Notebooks](). The API-based codebase uses prompt-level repulsion as the equivalent for L5.
 
 ## Cost Estimates
 
@@ -194,8 +182,8 @@ Embeddings use `sentence-transformers/all-MiniLM-L6-v2`. Statistical significanc
 
 | Notebook | Description | Runs on |
 |----------|-------------|---------|
-| [`Mitigating_Hivemind_with_adapters.ipynb`](Mitigating_Hivemind_with_adapters.ipynb) | Full ladder experiment on Mistral-7B with cultural LoRA adapters + token-level n-gram repulsion | GPU (Colab T4/A100) |
-| [`llm_judge_creative_quality.ipynb`](llm_judge_creative_quality.ipynb) | LLM-as-Judge evaluation using GPT-OSS 120B via Ollama Cloud | CPU (API-based) |
+| [`\Colab Notebooks\Mitigating_Hivemind_with_adapters.ipynb`](Mitigating_Hivemind_with_adapters.ipynb) | Full ladder experiment on Mistral-7B with cultural LoRA adapters + token-level n-gram repulsion | GPU (Colab T4/A100) |
+| [`\Colab Notebooks\llm_judge_creative_quality.ipynb`](llm_judge_creative_quality.ipynb) | LLM-as-Judge evaluation using GPT-OSS 120B via Ollama Cloud | CPU (API-based) |
 
 ### Mitigating_Hivemind_with_adapters.ipynb
 
@@ -203,7 +191,7 @@ The original ladder experiment running locally on **Mistral-7B-Instruct-v0.2** (
 
 - **L2 (Cultural LoRA Adapters)**: Uses 5 cultural adapters from the [Modular Pluralism](https://arxiv.org/abs/2406.15951) paper (Feng et al., 2024) — `bunsenfeng/mistral-{africa,asia,europe,northamerica,southamerica}_culture`. These are LoRA adapters trained on culturally-grounded text from each region. Our results show they produce **no significant diversity improvement** when used alone (L2), which is a key negative finding.
 
-- **Token-level n-gram repulsion (L5)**: Implements a `CrossResponseRepulsionProcessor` that directly modifies logits during generation. All bigrams, trigrams, and 4-grams from previous responses are banned — the model's probability for any banned continuation is reduced by ~150×. This is mechanistically enforced diversity, not a suggestion the model can ignore.
+- **Token-level n-gram repulsion (L5)**: Implements a `CrossResponseRepulsionProcessor` that directly modifies logits during generation. All bigrams, trigrams, and 4-grams from previous responses are banned, the model's probability for any banned continuation is reduced by ~150×. This is mechanistically enforced diversity, not a suggestion the model can ignore.
 
 Requires a GPU with ≥16GB VRAM (Colab T4 works with 4-bit quantization). Runs all 7 levels (L0–L6) including adapter-based levels not available through the API.
 
