@@ -7,3 +7,4 @@ build/
 .venv/
 /src/__pycache__/
 /results/experiment_*.json
+/Colab Notebooks/*.py
